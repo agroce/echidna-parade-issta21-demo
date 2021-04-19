@@ -75,7 +75,7 @@
 %%
 %% The "title" command has an optional parameter,
 %% allowing the author to define a "short title" to be used in page headers.
-\title{DeepState: Unit Testing Unbound}
+\title{\emph{echidna-parade}: A Tool for Diverse Multicore\\Smart Contract Fuzzing}
 
 %%
 %% The "author" command and its associated commands are used to define
@@ -85,7 +85,6 @@
 %% used to denote shared contribution to the research.
 \author{Alex Groce}
 \affiliation{\institution{Northern Arizona University}\country{United States}}
-\author{Peter Goodman}
 \author{Gustavo Grieco}
 \affiliation{\institution{Trail of Bits}\country{United States}}
 
@@ -96,13 +95,25 @@
 %% other information printed in the page headers. This command allows
 %% the author to define a more concise list
 %% of authors' names for this purpose.
-\renewcommand{\shortauthors}{Groce, Goodman, and Grieco}
+\renewcommand{\shortauthors}{Groce and Grieco}
 
 %%
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-Almost every software developer knows how to write a unit test; very few software developers know how to use fuzzing or symboilic execution tools.  DeepState provides a way to write parameterized/generalized unit tests by adding data generation and nondeterministic choice constructs to a Google Test-like API.  DeepState can then use modern fuzzers such as afl or libFuzzer, or the Manticore symbolic execution tool, to construct concrete tests.  DeepState makes it easy to apply mulitple fuzzers, including in a cooperative ensemble, to a testing problem, and to use fuzzers for full-fledged property-based testing with complex input validity and correctness constraints.  DeepState also adds swarm testing and smart test reduction and normalization capabilities to fuzzers without the need to modify the back-end tool.
+Echidna is a widely used fuzzer for Etherum blockchain smart
+contracts.  While Echidna is an essentially single-threaded tool, it
+is possible for multiple Echidna processes to communicate by use of a shared
+input corpus.  Echidna provides a very large variety of configuration
+options, where each smart contract may be best-tested by a non-default
+configuration, and different faults of coverage targets within a
+single contract may also have differing ideal configurations.  This
+paper presents \emph{echidna-parade}, a tool that provides pushbutton
+multicore fuzzing using Echidna as an underlying fuzzing engine, and
+automatically provides sophisticated diversification of
+configurations.   Even without using multiple cores, echidna-parade
+can significantly improve the effectiveness of fuzzing with Echidna,
+due to the advantages provided by multiple types of test configuration diversity.
 \end{abstract}
 
 \begin{CCSXML}
@@ -123,17 +134,81 @@ Almost every software developer knows how to write a unit test; very few softwar
 \ccsdesc[500]{Software and its engineering~Dynamic analysis}
 \ccsdesc[500]{Software and its engineering~Software testing and debugging}
 
-\keywords{parameterized unit tests, fuzzing, symbolic execution, test reduction}
+\keywords{fuzzing, smart contracts, test diversity, swarm testing,
+  test length}
 
 
 \maketitle
 
 \section{Introduction}
 
-\section{A Simple Example}
+An echidna is a spiny monotreme; Echidna is a widely used open source fuzzer for
+Ethereum smart contracts~\cite{echidnaissta,echidna-code}.  The collective noun for
+echidnae is \emph{``parade''}; echidna-parade is a tool for configuring and
+running multiple Echidna instances to improve the
+effectiveness of smart contract fuzzing.
 
-\section{Supported Fuzzers}
+Smart contracts for the Ethereum blockchain~\cite{buterin2013whitepaper}, most often written in Solidity~\cite{wood2014yellow}, a
+JavaScript-like language, support high-value financial transactions,
+as well as tracking valuable IP and even physical goods.  It is essential that
+autonomous financial programs be reliable and protected against
+attack.  Unfortunately, smart contracts are often \emph{neither}
+correct nor secure~\cite{SurveyAttacks}.  A survey categorizing flaws
+in critical contracts~\cite{FC20} estimated that fuzzing, using custom
+user-defined properties, might detect more than 60\% of the most
+severe, exploitable flaws in contracts, and that many of these cannot easily
+be detected using purely static analysis.  Highly effective fuzzing is
+therefore essential to smart contract developers and security
+auditors, and the Echidna tool is used by both contract developers
+(Gustavo, example?) and auditors at Trail of Bits.
 
+Echidna is essentially a single-threaded tool that does not make
+effective use of mulitple cores.  However, multiple Echidna
+independent Echidna processes can be run at the same time.  An Echidna
+process will, upon termination, produce a corpus of transaction
+sequences needed to cover all reached contract locations and
+transaction dispositions (whether the transaction succeeded or caused
+a revert of the EVM) as a set of files, and an Echidna process can
+take as input a set of such transaction sequences to seed fuzzing.
 
+The \emph{echidna-parade} tool is an open source utility that orchestrates multiple
+Echidna processes using this mechanism, to enable both multicore
+fuzzing and more effective single-core fuzzing, by diversifying the
+configuration of Echidna, in order to cover hard-to-reach code, and
+discover subtle flaws. It is available via pypi ({\tt pip
+    install echidna-parade}) or on GitHub
+({\url{https://github.com/agroce/echidna-parade}).
+
+\section{Basic Usage}
+
+Using \emph{echidna-parade} is intended to be a push-button process,
+requiring no additional expertise for users familiar with the Echidna
+tool.  For instance, if a user used the command line:
+
+{\scriptsize
+\begin{verbatim}
+> echidna-test contract.sol --config config.yaml --contract TEST
+\end{verbatim}
+  }
+
+\noindent to test a smart contract, then testing the same contract with echidna-parade, using all
+available CPUs for one hour, would require only a slight modification:
+
+{\scriptsize
+\begin{verbatim}
+> echidna-parade contract.sol --config config.yaml --contract TEST
+\end{verbatim}
+  }
+
+\section{Architecture and Diversification Strategies}
+
+\section{Experimental Evaluation}
+
+\section{Related Work}
+
+\section{Conclusion}
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
 
 \end{document}
