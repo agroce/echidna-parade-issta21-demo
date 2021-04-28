@@ -290,7 +290,30 @@ that have a large impact on test effectiveness, and are either hard to
 tune or, for that matter, impossible to ``tune'' in that different
 values are essential to covering different aspects of the code or
 exposing different bugs.
-  
+
+The \emph{echidna-parade} tool stores all results from all the separate Echidna runs it generates in separate directories, so that users can inspect failed properties and violated assertion.  The tool collects all failures and provides a summary at the end of the run, including information on where exact failure traces can be found.  Users can also use these detailed results to determine if increases in coverage or bugs were correlated with inclusion or omission of certain functions.
+
+\begin{table*}
+\centering
+\begin{tabular}{l|r|r|r|r}
+& Echidna (5 hours) & Parade (1 core, 5 hours) & Parade (8 cores, 1
+                                                 hour) & Parade (8
+                                                         cores, 2
+                                                         hours) \\
+  \hline
+  Mean Fully Covered & 88.63 & 90.33 & 91.33 & 94.3 \\
+  Median Fully Covered & 86.0 & 86.0 & 86.0 & 98.0 \\
+  Std. Dev Fully Covered & 7.17 & 7.36 & 7.78 & 7.26 \\
+  \hline
+  Mean Non-Revert Covered & 136.2 & 138.23 & 139.7 & 143.37 \\
+  Median Non-Revert Covered & 133.0 & 133.0 & 133.0 & 148.0 \\
+  Std. Dev Non-Revert Covered & 9.03 & 9.36 & 9.95 & 9.14 \\                         
+\end{tabular}
+\caption{DSS Experiment Results}
+\label{tab:exp}
+\end{table*}
+
+
 \section{Architecture and Diversification Strategies}
 
 The basic architecture of \emph{echidna-parade} is simple.  It uses
@@ -350,6 +373,7 @@ targets are \emph{triggered} by some function calls but
 \emph{suppressed} by other calls, it is important to perform testing
 with as many different call sets as possible \cite{groce2013help}.
 
+
 \subsection{Test Length Variance}
 
 Another important form of variation is the length of test sequences \cite{ASE08,ArcuriLen}.  It is
@@ -387,25 +411,6 @@ settings included in the chosen YAML file.
 
 \section{Experimental Evaluation}
 
-\begin{table*}
-\centering
-\begin{tabular}{l|r|r|r|r}
-& Echidna (5 hours) & Parade (1 core, 5 hours) & Parade (8 cores, 1
-                                                 hour) & Parade (8
-                                                         cores, 2
-                                                         hours) \\
-  \hline
-  Mean Fully Covered & 88.63 & 90.33 & 91.33 & 94.3 \\
-  Median Fully Covered & 86.0 & 86.0 & 86.0 & 98.0 \\
-  Std. Dev Fully Covered & 7.17 & 7.36 & 7.78 & 7.26 \\
-  \hline
-  Mean Non-Revert Covered & 136.2 & 138.23 & 139.7 & 143.37 \\
-  Median Non-Revert Covered & 133.0 & 133.0 & 133.0 & 148.0 \\
-  Std. Dev Non-Revert Covered & 9.03 & 9.36 & 9.95 & 9.14 \\                         
-\end{tabular}
-\caption{DSS Experiment Results}
-\label{tab:exp}
-\end{table*}
 
 We compared Echidna without any variance, using a fixed configuration,
 to a 5 hour single-core \emph{echidna-parade} run using the default variance,
