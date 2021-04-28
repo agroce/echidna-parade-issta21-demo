@@ -24,6 +24,8 @@
 %% The first command in your LaTeX source must be the \documentclass command.
 \documentclass[sigconf]{acmart}
 
+\usepackage{code}
+
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
@@ -202,6 +204,93 @@ available CPUs for one hour, would require only a slight modification:
 \end{verbatim}
   }
 
+In both cases, a contract called {\tt TEST} in a file called {\tt
+  contract.sol} will be tested, based on a configuration file, {\tt
+  config.yaml}.  The configuration file specifices the details of the
+fuzzing campaign to be run, for Echidna, and specifies a baseline for
+generating a set of varying configurations, for
+\emph{echidna-parade}.  The other major obvious difference is that Echidna
+will run using a single core, while, if called this way, without an
+{\tt --ncores} command line argument,
+\emph{echidna-parade} will make use of as many cores as the tool
+finds available.  Figure~\ref{fig:parade} shows output from a typical
+\emph{echidna-parade} run from our experiments below.
+
+\begin{figure*}
+  {\scriptsize
+    \begin{code}
+Starting echidna-parade with
+config=Config(files=['/Users/adg326/dss/crytic-export/flattening/DogTest.sol'],
+  name='2hour.8.parade.experiment.29', resume=None, contract='DogTest',
+  config=<\_io.TextIOWrapper name='plain.yaml' mode='r' encoding='UTF-8'>, bases=None, ncores=8,
+  corpus\_dir='/Users/adg326/dss/corpus.2hour.8.parade.experiment.29', timeout=7200,
+  gen\_time=300, initial\_time=300, seed=None, minseqLen=10,
+  maxseqLen=300, PdefaultLen=0.5, PdefaultDict=0.5,
+  prob=0.5, always=[])
+
+Results will be written to: /Users/adg326/dss/2hour.8.parade.experiment.29
+Identified 29 public and external functions: Dog.rely(address), Dog.deny(address), Dog.file(bytes32,address), Dog.file(bytes32,uint256),
+  Dog.file(bytes32,bytes32,uint256), Dog.file(bytes32,bytes32,address), Dog.chop(bytes32), Dog.bark(bytes32,address,address), Dog.digs(bytes32,uint256),
+   Dog.cage(), Vat.rely(address), Vat.deny(address), Vat.hope(address), Vat.nope(address), Vat.init(bytes32), Vat.file(bytes32,uint256), Vat.file(bytes32,bytes32,uint256),
+  Vat.cage(), Vat.slip(bytes32,address,int256), Vat.flux(bytes32,address,address,uint256), Vat.move(address,address,uint256),
+   Vat.frob(bytes32,address,address,address,int256,int256), Vat.fork(bytes32,address,address,int256,int256), Vat.grab(bytes32,address,address,address,int256,int256),
+  Vat.heal(uint256), Vat.suck(address,address,uint256), Vat.fold(bytes32,address,int256),VowMock.fess(uint256), ClipperMock.kick(uint256,uint256,address,address)
+
+\vspace{0.1in}
+  
+RUNNING INITIAL CORPUS GENERATION
+- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/initial blacklisting [  ] with seqLen 100 dictFr
+eq 0.4 and mutConsts  [1, 1, 1, 1]
+
+\vspace{0.1in}
+
+SWARM GENERATION \#1: ELAPSED TIME 303.87 SECONDS / 7200
+- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/gen.1.0 blacklisting [ Dog.rely(address), Dog.deny(address), Dog.file(bytes32,address), Dog.file(bytes32,uint256),
+  Dog.file(bytes32,bytes32,address), Vat.rely(address), Vat.deny(address), Vat.nope(address), Vat.file(bytes32,uint256), Vat.slip(bytes32,address,int256),
+   Vat.move(address,address,uint256), Vat.frob(bytes32,address,address,address,int256,int256), Vat.heal(uint256) ] with seqLen 100 dictFreq 0.4 and mutConsts  [0, 3, 1000, 3]
+- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/gen.1.1 blacklisting [ Dog.deny(address), Dog.file(bytes32,address), Dog.file(bytes32,bytes32,uint256),
+  Dog.file(bytes32,bytes32,address), Dog.cage(), Vat.hope(address), Vat.file(bytes32,bytes32,uint256), Vat.flux(bytes32,address,address,uint256),
+   Vat.frob(bytes32,address,address,address,int256,int256), Vat.fork(bytes32,address,address,int256,int256), Vat.grab(bytes32,address,address,address,int256,int256),
+  Vat.suck(address,address,uint256), Vat.fold(bytes32,address,int256), VowMock.fess(uint256), ClipperMock.kick(uint256,uint256,address,address) ] with seqLen 100
+  dictFreq 0.88 and mutConsts  [2, 0, 2, 2000]
+...
+COLLECTING NEW COVERAGE: 2hour.8.parade.experiment.29/gen.1.0/corpus/coverage/-7507126444194881135.txt
+COLLECTING NEW COVERAGE: 2hour.8.parade.experiment.29/gen.1.0/corpus/coverage/-6907082692337979773.txt
+COLLECTING NEW COVERAGE: 2hour.8.parade.experiment.29/gen.1.2/corpus/coverage/-4795647765542071453.txt
+COLLECTING NEW COVERAGE: 2hour.8.parade.experiment.29/gen.1.4/corpus/coverage/3547233554766032648.txt
+COLLECTING NEW COVERAGE: 2hour.8.parade.experiment.29/gen.1.4/corpus/coverage/-7663735074641916226.txt
+...
+SWARM GENERATION \#2: ELAPSED TIME 612.63 SECONDS / 7200
+- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/gen.2.0
+...
+DONE!
+RUNNING FINAL COVERAGE PASS...
+- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/coverage blacklisting [  ] with seqLen 100 dictFreq 0.4 and mutConsts  [1, 1, 1, 1]
+COVERAGE PASS TOOK 62.12 SECONDS
+
+NO FAILURES
+\end{code}
+}
+\caption{Running \emph{echidna-parade} on the DSS Code}
+\label{fig:parade}
+\end{figure*}
+
+Part of the need for \emph{echidna-parade} arises from the
+complexities of the configuration file.  Echidna currently supports 34
+different configuration options in this file, over 20 of which have
+complex, non-boolean values.  Some of these parameters relate to the
+details of the contract under test, e.g. special Ethereum addresses
+with meaning to the contract, or simply determine basic properties of
+a run, such as the time allowed for testing, format of the output, or
+whether to try to find transactions with high gas prices or check
+assertions in addition to user-defined properties.  However, there are
+configurations for transaction sequence maximum length, which
+functions to test, and control of low-level test generation strategies
+that have a large impact on test effectiveness, and are either hard to
+tune or, for that matter, impossible to ``tune'' in that different
+values are essential to covering different aspects of the code or
+exposing different bugs.
+  
 \section{Architecture and Diversification Strategies}
 
 The basic architecture of \emph{echidna-parade} is simple.  It uses
@@ -361,5 +450,10 @@ required.
 
 \bibliographystyle{plain}
 \bibliography{bibliography}
+
+\newpage
+
+\appendix
+\section{Proposed Demonstration}
 
 \end{document}
