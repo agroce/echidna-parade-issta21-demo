@@ -102,18 +102,20 @@
 %% article.
 \begin{abstract}
 Echidna is a widely used fuzzer for Etherum blockchain smart
-contracts.  While Echidna is an essentially single-threaded tool, it
+contracts that generates \emph{transaction sequences} of calls to smart contracts.  While Echidna is an essentially single-threaded tool, it
 is possible for multiple Echidna processes to communicate by use of a shared
-input corpus.  Echidna provides a very large variety of configuration
-options, where each smart contract may be best-tested by a non-default
-configuration, and different faults of coverage targets within a
+transaction sequence corpus.  Echidna provides a very large variety of configuration
+options, since each smart contract may be best-tested by a non-default
+configuration, and different faults or coverage targets within a
 single contract may also have differing ideal configurations.  This
 paper presents \emph{echidna-parade}, a tool that provides pushbutton
 multicore fuzzing using Echidna as an underlying fuzzing engine, and
 automatically provides sophisticated diversification of
 configurations.   Even without using multiple cores, echidna-parade
-can significantly improve the effectiveness of fuzzing with Echidna,
-due to the advantages provided by multiple types of test configuration diversity.
+can improve the effectiveness of fuzzing with Echidna,
+due to the advantages provided by multiple types of test configuration
+diversity.  Using \emph{echidna-parade} with multiple cores can
+produce significantly better results than Echidna, in less time.
 \end{abstract}
 
 \begin{CCSXML}
@@ -160,7 +162,7 @@ severe, exploitable flaws in contracts, and that many of these cannot easily
 be detected using purely static analysis.  Highly effective fuzzing is
 therefore essential to smart contract developers and security
 auditors, and the Echidna tool is used by both contract developers
-(Gustavo, example?) and auditors at Trail of Bits.
+and auditors at Trail of Bits.
 
 Echidna is essentially a single-threaded tool that does not make
 effective use of mulitple cores.  However, multiple Echidna
@@ -202,7 +204,156 @@ available CPUs for one hour, would require only a slight modification:
 
 \section{Architecture and Diversification Strategies}
 
+The basic architecture of \emph{echidna-parade} is simple.  It uses
+the Slither static analysis tool to scan the contract under test and
+extract needed information, then examines any custom Echidna
+configuration options provided by the user (in the form of a YAML
+file).  After this initial scan, it runs an initial run of Echidna
+using default or user-configuration parameters, to form a starting
+corpus of transaction sequences (API call tests, essentially).  After
+this initial run, each \emph{generation} involves:
+
+\begin{enumerate}
+  \item Generating a set of novel configuations (YAML files) up to the
+    number of cores the tool is allowed to use. 
+    \item Spawning Echidna processess for each of these
+      configurations.  Each process is seeded with the set of all
+      coverage-enhancing transaction sequences found by any run thus far.
+      \item Collecting any transaction sequences from these runs that
+        produce new coverage, and adding them to the corpus.
+        \item Reporting new corpus sequences discovered and/or new property failures to
+          the user.
+        \end{enumerate}
+
+The core non-bookkeeping element of the tool is the generation of
+novel configurations that provide search diversity and improve
+testing.  Understanding these sources of diversity is key to
+understanding the rationale for the \emph{echidna-parade} tool.
+
+\subsection{Swarm Testing (API Call Omission)}
+
+Swarm testing \cite{ISSTA12} is a method for improving automated test
+generation that relies on identifying \emph{features} of tests, and
+disabling some features in each test.  For instance, if features are
+API calls, and we are testing a stack with {\tt push}, {\tt pop}, {\tt
+  top}, and {\tt clear} calls, a non-swarm random test of any
+significant length will normally contain multiple calls to all of
+these functions.  In swarm testing, for each test some of the calls
+(with probability usually equal to 0.5 for each call) will be
+disabled, but different calls will be disable for each generated
+test.  This produces less variance between calls within a test, but
+much more variance \emph{between tests}.  Practically, in the stack
+example, it will enable the size of the stack to grow much larger than
+it ever would have any chance of doing in non-swarm testing, due to
+some tests omitting {\tt pop} and/or {\tt clear} calls.  Swarm testing
+is widely used in compiler testing
+\cite{le2014compiler,dewey2015fuzzing} and is a core element of the
+testing for FoundationDB, the back-end database for Apple and
+Snowflake cloud services \cite{zhou2021foundationdb}.
+
+\emph{echidna-parade} uses the Slither static analysis tool to extract
+the set of public functions from tested smart contracts, and
+automatically configures Echidna to omit some of these functions
+(about 50\%, by default)
+during each run.  We believe this provides the most important form of variation
+in fuzzing.  In particular, given that some bugs and/or coverage
+targets are \emph{triggered} by some function calls but
+\emph{suppressed} by other calls, it is important to perform testing
+with as many different call sets as possible \cite{groce2013help}.
+
+\subsection{Test Length Variance}
+
+Another important form of variation is the length of test sequences \cite{ASE08,ArcuriLen}.  It is
+known that there is no single best choice for the length of API call
+sequences in test generation; different SUTs and even different bugs
+and/or coverage targets in the same SUT may ``prefer'' different test
+lengths.  For example, a line of code relating to a resource limit (a
+check for an array being full, for example) may require a long test to
+have any chance of execution.  Another line of code may only execute
+if another value has not been initialized by a different API function
+that can be called.  Running a larger number of shorter tests will enable executing
+this line more often, since once the code is initialized, the line can
+no longer be covered in a test.  \emph{echidna-parade} therefore
+varies the maximum sequence length for each Echidna run as well, in a
+user-configurable way (with a bias towards the default, tuned value).
+
+\subsection{Mutation and Search Variance}
+
+Finally, as Holzmann et al. showed, in hard search problems in model
+checking, it is extremely useful to simply vary the underlying search
+methods, given the lack of an optimal solution \cite{swarmIEEE}.  The
+equivalent for Echidna is to vary the sequence mutation strategies
+used in the coverage-driven GA search and the frequency with which
+dictionary constants mined from source code are used.
+\emph{echidna-parade} therefore also varies these parameters over the
+full set of valid values, but with some bias towards the default values.
+
+\subsection{User-Controlled Variance}
+
+In addition to these automatic variations, a user can also provide a
+set of ``overlay'' YAML Echidna configuration files to
+\emph{echidna-parade}, which will select one of these at random to use
+in each configuration, replacing that configuration's choices for any
+settings included in the chosen YAML file.
+
 \section{Experimental Evaluation}
+
+\begin{table*}
+\centering
+\begin{tabular}{l|r|r|r|r}
+& Echidna (5 hours) & Parade (1 core, 5 hours) & Parade (8 cores, 1
+                                                 hour) & Parade (8
+                                                         cores, 2
+                                                         hours) \\
+  \hline
+  Mean Fully Covered & 88.63 & 90.33 & 91.33 & 94.3 \\
+  Median Fully Covered & 86.0 & 86.0 & 86.0 & 98.0 \\
+  Std. Dev Fully Covered & 7.17 & 7.36 & 7.78 & 7.26 \\
+  \hline
+  Mean Non-Revert Covered & 136.2 & 138.23 & 139.7 & 143.37 \\
+  Median Non-Revert Covered & 133.0 & 133.0 & 133.0 & 148.0 \\
+  Std. Dev Non-Revert Covered & 9.03 & 9.36 & 9.95 & 9.14 \\                         
+\end{tabular}
+\caption{DSS Experiment Results}
+\label{tab:exp}
+\end{table*}
+
+We compared Echidna without any variance, using a fixed configuration,
+to a 5 hour single-core \emph{echidna-parade} run using the default variance,
+a 1 hour \emph{echidna-parade} run using 8 cores,
+and a 2 hour \emph{echidna-parade} run using 8 cores.  For our evaluation, we
+used the Multi Collateral Dai contract code
+(\url{https://github.com/makerdao/dss}), developed as part of the
+MakerDAO decentralized autonomous organization's Dai stablecoin
+(market cap as we write of approximately \$3.7 billion).  The code is
+a variant of the repo code used during a security audit \cite{FC20}.
+Results in Table~\ref{tab:exp} show results for 30 runs of each of
+these approaches.  The first set of results compares fully-covered
+lines of code.  A line of code in a solidity contract is fully-covered
+if it has been executed both in a context where the function in which
+it resides runs to completion \emph{and} a context where the function
+\emph{reverts}.  In the Ethereum blockchain, a revert causes a
+call to a contract to terminate and roll back any state changes.
+Testing revert behavior can be essential for detecting certain bugs.
+The second comparison considers only non-reverting coverage; while
+covering reverts is important, it is usually most important for
+testing to run all
+code in a context where the effects propagate to produce state
+changes.  Despite the large overhead of continually starting up a new
+echidna process, writing new coverage results to disk after each run,
+and re-executing all corpus transaction sequences, even a single core
+parade produces better results over 5 hours.  Making use of multiple
+cores, which is not supported inside Echidna itself, a 1 or 2 hour
+\emph{echidna-parade} run can produce much better results.  The 2 hour,
+8-core parade run produces statistically significantly better results
+for all measures, by the Mann-Whitney U test, with p-values below
+0.001.  All other results, due to the notably high variance of
+testing, are not significant ($0.11 \leq p \leq 0.24$).  Some coverage
+targets were \emph{only} reached during a parade run; we are unsure if
+these can be covered by non-diversified Echidna, in any reasonable
+amount of time.  Clearly for
+time efficient testing of the contract, use of \emph{echidna-parade} is
+required.
 
 \section{Related Work}
 
