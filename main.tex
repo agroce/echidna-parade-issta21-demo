@@ -164,7 +164,7 @@ severe, exploitable flaws in contracts, and that many of these cannot easily
 be detected using purely static analysis.  Highly effective fuzzing is
 therefore essential to smart contract developers and security
 auditors, and the Echidna tool is used by both contract developers
-and auditors at Trail of Bits.
+and internally auditors at Trail of Bits.  Echidna is, to our understanding, the most popular and best supported fuzzer for Ethereum smart contracts, with almost an order of magnitude more GitHub stars than any other open-source fuzzer.
 
 Echidna is essentially a single-threaded tool that does not make
 effective use of mulitple cores.  However, multiple Echidna
@@ -181,7 +181,7 @@ fuzzing and more effective single-core fuzzing, by diversifying the
 configuration of Echidna, in order to cover hard-to-reach code, and
 discover subtle flaws. It is available via pypi ({\tt pip
     install echidna-parade}) or on GitHub
-({\url{https://github.com/agroce/echidna-parade}).
+({\url{https://github.com/agroce/echidna-parade}).  The tool is already being used internally in security aduits by Trail of Bits.
 
 \section{Basic Usage}
 
@@ -337,7 +337,9 @@ this initial run, each \emph{generation} involves:
           the user.
         \end{enumerate}
 
-The core non-bookkeeping element of the tool is the generation of
+The tool allows users to configure the time alloted to the initial scan and to each generation, and initialize testing from an existing corpus.  A parade run can also be resumed, with the {\tt --resume} option, taking up where the fuzzing left off, a feature that often proves useful in fuzzers such as afl and libFuzzer.
+        
+The core non-bookkeeping element of the tool is the construction of the
 novel configurations that provide search diversity and improve
 testing.  Understanding these sources of diversity is key to
 understanding the rationale for the \emph{echidna-parade} tool.
@@ -366,13 +368,14 @@ Snowflake cloud services \cite{zhou2021foundationdb}.
 \emph{echidna-parade} uses the Slither static analysis tool to extract
 the set of public functions from tested smart contracts, and
 automatically configures Echidna to omit some of these functions
-(about 50\%, by default)
+(the probability of omission is 50\%, by default, but can be configured)
 during each run.  We believe this provides the most important form of variation
 in fuzzing.  In particular, given that some bugs and/or coverage
 targets are \emph{triggered} by some function calls but
 \emph{suppressed} by other calls, it is important to perform testing
 with as many different call sets as possible \cite{groce2013help}.
 
+Because users may know that \emph{some} calls are essential to the functionality being testing, \emph{echidna-parade} supports an argument, {\tt --always}, specifying function signatures that should \emph{never} be omitted from configurations.
 
 \subsection{Test Length Variance}
 
@@ -407,12 +410,15 @@ In addition to these automatic variations, a user can also provide a
 set of ``overlay'' YAML Echidna configuration files to
 \emph{echidna-parade}, which will select one of these at random to use
 in each configuration, replacing that configuration's choices for any
-settings included in the chosen YAML file.
+settings included in the chosen YAML file.  This feature makes it possible for users, with some effort, to diversify \emph{any} Echidna configuration option, with any desired probability distribution.  In particular, we expect that some users will want to use this to, e.g.,  run some fuzzing in configurations where the sender of transactions is the contract owner/creator, and some in configurations where unauthorized users originate calls into the contract.  These kinds of diversification are inherently contract-specific, unlike the generic forms of diversity \emph{echidna-parade} automatically provides.
 
 \section{Experimental Evaluation}
 
+We first compared the performance of Echidna and \emph{echidna-parade} on the example contract included in the \emph{echidna-parade} to demonstrate the value of swarm testing.  We configured both tools to use 10 minutes of CPU time (so \emph{echidna-parade} dervied no advantage in testing cycles from using multiple cores, and in fact paid a substantial overhead due to having to restart the fuzzer multiple times).  There are three detectable assertion violations in the example.  One of the violations is trivial to detect, but detecting it will also abort the trace and prevent detecting the other issues.  The other two violations require constructing very large arrays via repeated calls.  We configured \emph{echidna-parade} to always include the functions with the hard-to-find violations, and three functions known to be relevant to finding the vulnerabilities.  User knowledge of such ``key'' functions is common in real analysis of contracts, but cannot be expressed to Echidna without using \emph{echidna-parade}.
 
-We compared Echidna without any variance, using a fixed configuration,
+Over 10 runs, \emph{echidna-parade} detected a mean of 2.44 of the violations, with a median of two detected issues.  It detected the hardest-to-trigger violation in 7 of the runs.  Echidna alone only detected a mean of 1.6 issues, with a median detection of 1.5 issues.  Moreover, Echidna only detected the hardest-to-produce problem twice.  The difference between the two approaches was statistically significant by Mann-Whitney U-test with $p \leq 0.005$.
+
+For a more substantial, real-world evaluation, we compared Echidna without any variance, using a fixed configuration,
 to a 5 hour single-core \emph{echidna-parade} run using the default variance,
 a 1 hour \emph{echidna-parade} run using 8 cores,
 and a 2 hour \emph{echidna-parade} run using 8 cores.  For our evaluation, we
@@ -445,13 +451,19 @@ for all measures, by the Mann-Whitney U test, with p-values below
 testing, are not significant ($0.11 \leq p \leq 0.24$).  Some coverage
 targets were \emph{only} reached during a parade run; we are unsure if
 these can be covered by non-diversified Echidna, in any reasonable
-amount of time.  Clearly for
-time efficient testing of the contract, use of \emph{echidna-parade} is
+amount of time.  In fact, even using \emph{echidna-parade} there were coverage targets that were only covered once in total experiment runtime of over 36 CPU days!  Clearly for
+effective and efficient testing of this contract, use of \emph{echidna-parade} is
 required.
 
 \section{Related Work}
 
+Smart contract fuzzing has been a popular topic in recent literature.  To our knowledge, ContractFuzzer \cite{jiang:ase:2018} was the first such tool described in the literature.  Harvey \cite{harvey}, sFuzz \cite{sfuzz}, and ILF \cite{he2019learning}, in addition to Echidna \cite{echidnaissta}, the basis for our work, have subsequently appeared, and other tools are in development.
+
+The foundations for the approach to diversification taken by \emph{echidna-parade} are three primary lines of research.  The first of these is the idea of swarm testing \cite{ISSTA12}, which aims to improve testing by omitting some features uniformly throughout a test, in part because a feature (e.g. API call) may \emph{suppress} some behaviors \cite{groce2013help}.   Second, there is literature showing that a single test \emph{length} may not be ideal for all SUTs or behaviors of an SUT \cite{ASE08,ArcuriLen}.  Finally, there is the swarm verification approach to model checking \cite{swarmIEEE}, a precursor to swarm testing, which diversifies search strategy parameters themselves.  The only other tool we are aware of that adds swarm testing as a layer atop an existing fuzzer is the DeepState tool \cite{goodman2018deepstate}, which was a direct inspiration for \emph{echidna-parade}.
+
 \section{Conclusion}
+
+Smart contract fuzzing is a challenging problem, a particularly high-stakes instance of the general API-sequence test generation problem.  As our experiments above show, high stakes contracts can be hard to explore, even with multi-hour fuzzing runs.  The \emph{echidna-parade} tool addresses this problem in two ways.  First, it adds easy multicore support to the essentially single-threaded Echidna smart contract fuzzer.  Second, \emph{echidna-parade} adds additional value by automatically diversifying the fuzzing performed by Echidna, which makes some bugs much easier to find.  The tool is open source and available via {\tt pip}, and is already being used in security audits at Trail of Bits.
 
 \bibliographystyle{plain}
 \bibliography{bibliography}
@@ -460,5 +472,27 @@ required.
 
 \appendix
 \section{Proposed Demonstration}
+
+\begin{enumerate}
+
+\item First, briefly note the importance of ethereum smart contracts, go to coindesk and etherscan pages to show the current ETH market cap, and then the massive number of transactions happening each day and associated ETH dollar value, which doesn't even cover token values where much of the action is.
+
+\item Next show the Echidna tool page, and introduce it is as a widely used smart contract fuzzer.
+
+\item Show a simple smart contract, such as the justlen.sol code, and then a complex one, such as part of the DSS code used in the evaluation.  Discuss the basics of Solidity, run echidna on a trivial example from the Echidna distribution, to show what a property failure and transaction sequence looks like.
+
+\item Discuss the challenge of fuzzing complex contracts, just like any other hard fuzzing problem.  Discuss that Echidna is single-core, but can communicate via corpuses, like afl but without mid-run reading of new corpus info at present.  Discuss how many hours of Echidna will not hit all interesting targets in code like DSS.  Briefly describe use in both contract development (show pages of real contracts with Echidna tests) and in audits (mention some real bugs found in public Trail of Bits audits using Echidna).
+  
+\item Now show how to install echidna-parade, github repo.
+
+\item Describe how the tool has the same interface as echidna.  Run on the simple example we used Echidna on.
+
+\item Show the experimental results from the paper, discuss the advantages testing something like DSS.
+
+\item Step through the three sources of diversity, pointing to the run on the simple example to explain swarm omission of API calls, and the differing test lengths and parameter choices.
+
+\item Run on the justlen.sol example, which is quick enough to show during the demonstration.  Note the experimental results for it.
+
+\end{enumerate}
 
 \end{document}
