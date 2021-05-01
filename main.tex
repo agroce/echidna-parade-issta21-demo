@@ -77,7 +77,8 @@
 %%
 %% The "title" command has an optional parameter,
 %% allowing the author to define a "short title" to be used in page headers.
-\title{\emph{echidna-parade}: A Tool for Diverse Multicore\\Smart Contract Fuzzing}
+\title[\emph{echidna-parade}: A Tool for Diverse Multicore Smart
+Contract Fuzzing]{\emph{echidna-parade}: A Tool for Diverse Multicore\\Smart Contract Fuzzing}
 
 %%
 %% The "author" command and its associated commands are used to define
@@ -103,7 +104,7 @@
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-Echidna is a widely used fuzzer for Etherum blockchain smart
+Echidna is a widely used fuzzer for Ethereum Virtual Machine (EVM) compatible blockchain smart
 contracts that generates \emph{transaction sequences} of calls to smart contracts.  While Echidna is an essentially single-threaded tool, it
 is possible for multiple Echidna processes to communicate by use of a shared
 transaction sequence corpus.  Echidna provides a very large variety of configuration
@@ -113,7 +114,7 @@ single contract may also have differing ideal configurations.  This
 paper presents \emph{echidna-parade}, a tool that provides pushbutton
 multicore fuzzing using Echidna as an underlying fuzzing engine, and
 automatically provides sophisticated diversification of
-configurations.   Even without using multiple cores, echidna-parade
+configurations.   Even without using multiple cores, \emph{echidna-parade}
 can improve the effectiveness of fuzzing with Echidna,
 due to the advantages provided by multiple types of test configuration
 diversity.  Using \emph{echidna-parade} with multiple cores can
@@ -148,7 +149,7 @@ produce significantly better results than Echidna, in less time.
 
 An echidna is a spiny monotreme; Echidna is a widely used open source fuzzer for
 Ethereum smart contracts~\cite{echidnaissta}.  The collective noun for
-echidnae is \emph{``parade''}; echidna-parade is a tool for configuring and
+echidnae is \emph{``parade''}; \emph{echidna-parade} is a tool for configuring and
 running multiple Echidna instances to improve the
 effectiveness of smart contract fuzzing.
 
@@ -164,10 +165,13 @@ severe, exploitable flaws in contracts, and that many of these cannot easily
 be detected using purely static analysis.  Highly effective fuzzing is
 therefore essential to smart contract developers and security
 auditors, and the Echidna tool is used by both contract developers
-and internally auditors at Trail of Bits.  Echidna is, to our understanding, the most popular and best supported fuzzer for Ethereum smart contracts, with almost an order of magnitude more GitHub stars than any other open-source fuzzer.
+and internally auditors at Trail of Bits.  Echidna is, to our
+understanding, the most popular and best supported fuzzer for Ethereum
+smart contracts, with almost an order of magnitude more GitHub stars
+than any other open-source EVM fuzzer.
 
 Echidna is essentially a single-threaded tool that does not make
-effective use of mulitple cores.  However, multiple Echidna
+effective use of multiple cores.  However, multiple Echidna
 independent Echidna processes can be run at the same time.  An Echidna
 process will, upon termination, produce a corpus of transaction
 sequences needed to cover all reached contract locations and
@@ -181,7 +185,7 @@ fuzzing and more effective single-core fuzzing, by diversifying the
 configuration of Echidna, in order to cover hard-to-reach code, and
 discover subtle flaws. It is available via pypi ({\tt pip
     install echidna-parade}) or on GitHub
-({\url{https://github.com/agroce/echidna-parade}).  The tool is already being used internally in security aduits by Trail of Bits.
+({\url{https://github.com/agroce/echidna-parade}).  The tool is already being used internally in security audits by Trail of Bits.
 
 \section{Basic Usage}
 
@@ -206,7 +210,7 @@ available CPUs for one hour, would require only a slight modification:
 
 In both cases, a contract called {\tt TEST} in a file called {\tt
   contract.sol} will be tested, based on a configuration file, {\tt
-  config.yaml}.  The configuration file specifices the details of the
+  config.yaml}.  The configuration file specifies the details of the
 fuzzing campaign to be run, for Echidna, and specifies a baseline for
 generating a set of varying configurations, for
 \emph{echidna-parade}.  The other major obvious difference is that Echidna
@@ -239,8 +243,7 @@ Identified 29 public and external functions: Dog.rely(address), Dog.deny(address
 \vspace{0.1in}
   
 RUNNING INITIAL CORPUS GENERATION
-- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/initial blacklisting [  ] with seqLen 100 dictFr
-eq 0.4 and mutConsts  [1, 1, 1, 1]
+- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/initial blacklisting [  ] with seqLen 100 dictFreq 0.4 and mutConsts  [1, 1, 1, 1]
 
 \vspace{0.1in}
 
@@ -326,9 +329,9 @@ corpus of transaction sequences (API call tests, essentially).  After
 this initial run, each \emph{generation} involves:
 
 \begin{enumerate}
-  \item Generating a set of novel configuations (YAML files) up to the
+  \item Generating a set of novel configurations (YAML files) up to the
     number of cores the tool is allowed to use. 
-    \item Spawning Echidna processess for each of these
+    \item Spawning Echidna processes for each of these
       configurations.  Each process is seeded with the set of all
       coverage-enhancing transaction sequences found by any run thus far.
       \item Collecting any transaction sequences from these runs that
@@ -337,7 +340,7 @@ this initial run, each \emph{generation} involves:
           the user.
         \end{enumerate}
 
-The tool allows users to configure the time alloted to the initial scan and to each generation, and initialize testing from an existing corpus.  A parade run can also be resumed, with the {\tt --resume} option, taking up where the fuzzing left off, a feature that often proves useful in fuzzers such as afl and libFuzzer.
+The tool allows users to configure the time allotted to the initial scan and to each generation, and initialize testing from an existing corpus.  A parade run can also be resumed, with the {\tt --resume} option, taking up where the fuzzing left off, a feature that often proves useful in fuzzers such as afl and libFuzzer.
         
 The core non-bookkeeping element of the tool is the construction of the
 novel configurations that provide search diversity and improve
@@ -380,7 +383,7 @@ Because users may know that \emph{some} calls are essential to the functionality
 
 Another important form of variation is the length of test sequences \cite{ASE08,ArcuriLen}.  It is
 known that there is no single best choice for the length of API call
-sequences in test generation; different SUTs and even different bugs
+sequences in test generation; different Systems Under Test  (SUTs) and even different bugs
 and/or coverage targets in the same SUT may ``prefer'' different test
 lengths.  For example, a line of code relating to a resource limit (a
 check for an array being full, for example) may require a long test to
@@ -413,7 +416,7 @@ settings included in the chosen YAML file.  This feature makes it possible for u
 
 \section{Experimental Evaluation}
 
-We first compared the performance of Echidna and \emph{echidna-parade} on the example contract included in the \emph{echidna-parade} repo to demonstrate the value of swarm testing.  We configured both tools to use 10 minutes of CPU time (so \emph{echidna-parade} dervied no advantage in testing cycles from using multiple cores, and in fact paid a substantial overhead due to having to restart the fuzzer multiple times).  There are three detectable assertion violations in the example.  One of the violations is trivial to detect, but detecting it will also abort the trace and prevent detecting the other issues.  The other two violations require constructing very large arrays via repeated calls.  We configured \emph{echidna-parade} to always include the functions with the hard-to-find violations, and three functions known to be relevant to finding the vulnerabilities.  User knowledge of such ``key'' functions is common in real analysis of contracts, but cannot be expressed to Echidna without using \emph{echidna-parade}.
+We first compared the performance of Echidna and \emph{echidna-parade} on the example contract included in the \emph{echidna-parade} repo to demonstrate the value of swarm testing.  We configured both tools to use 10 minutes of CPU time (so \emph{echidna-parade} derived no advantage in testing cycles from using multiple cores, and in fact paid a substantial overhead due to having to restart the fuzzer multiple times).  There are three detectable assertion violations in the example.  One of the violations is trivial to detect, but detecting it will also abort the trace and prevent detecting the other issues.  The other two violations require constructing very large arrays via repeated calls.  We configured \emph{echidna-parade} to always include the functions with the hard-to-find violations, and three functions known to be relevant to finding the vulnerabilities.  User knowledge of such ``key'' functions is common in real analysis of contracts, but cannot be expressed to Echidna without using \emph{echidna-parade}.
 
 Over 10 runs, \emph{echidna-parade} detected a mean of 2.44 of the violations, with a median of two detected issues.  It detected the hardest-to-trigger violation in 7 of the runs.  Echidna alone only detected a mean of 1.6 issues, with a median detection of 1.5 issues.  Moreover, Echidna only detected the hardest-to-produce problem twice.  The difference between the two approaches was statistically significant by Mann-Whitney U-test with $p \leq 0.005$.
 
@@ -421,11 +424,11 @@ For a more substantial, real-world evaluation, we compared Echidna without any v
 to a 5 hour single-core \emph{echidna-parade} run using the default variance,
 a 1 hour \emph{echidna-parade} run using 8 cores,
 and a 2 hour \emph{echidna-parade} run using 8 cores.  For our evaluation, we
-used the Multi Collateral Dai contract code
+used the liquidation contracts from the Multi Collateral Dai contract code
 (\url{https://github.com/makerdao/dss}), developed as part of the
 MakerDAO decentralized autonomous organization's Dai stablecoin
 (market cap as we write of approximately \$3.7 billion).  The code is
-a variant of the repo code used during a security audit \cite{FC20}.
+a variant of the repo code used during a security audit \cite{FC20} \url{https://tinyurl.com/dazdu66c}.
 Results in Table~\ref{tab:exp} show results for 30 runs of each of
 these approaches.  The first set of results compares fully-covered
 lines of code.  A line of code in a solidity contract is fully-covered
@@ -433,7 +436,8 @@ if it has been executed both in a context where the function in which
 it resides runs to completion \emph{and} a context where the function
 \emph{reverts}.  In the Ethereum blockchain, a revert causes a
 call to a contract to terminate and roll back any state changes.
-Testing revert behavior can be essential for detecting certain bugs.
+Testing revert behavior can be essential for detecting certain bugs,
+ensuring guards on prohibited functionality are enforced.
 The second comparison considers only non-reverting coverage; while
 covering reverts is important, it is usually most important for
 testing to run all
@@ -462,7 +466,7 @@ The foundations for the approach to diversification taken by \emph{echidna-parad
 
 \section{Conclusion}
 
-Smart contract fuzzing is a challenging problem, a particularly high-stakes instance of the general API-sequence test generation problem.  As our experiments above show, high stakes contracts can be hard to explore, even with multi-hour fuzzing runs.  The \emph{echidna-parade} tool addresses this problem in two ways.  First, it adds easy multicore support to the essentially single-threaded Echidna smart contract fuzzer.  Second, \emph{echidna-parade} adds additional value by automatically diversifying the fuzzing performed by Echidna, which makes some bugs much easier to find.  The tool is open source and available via {\tt pip}, and is already being used in security audits at Trail of Bits.
+Smart contract fuzzing is a challenging problem, a particularly high-stakes instance of the general API-sequence test generation problem.  As our experiments above show, high stakes contracts can be hard to explore, even with multi-hour fuzzing runs.  The \emph{echidna-parade} tool addresses this problem in two ways.  First, it adds easy multicore support to the essentially single-threaded Echidna smart contract fuzzer.  Second, \emph{echidna-parade} adds additional value by automatically diversifying the fuzzing performed by Echidna, which makes some bugs much easier to find.  The tool is open source and is already being used in security audits at Trail of Bits.
 
 \bibliographystyle{plain}
 \bibliography{bibliography}
@@ -474,7 +478,7 @@ Smart contract fuzzing is a challenging problem, a particularly high-stakes inst
 
 \begin{enumerate}
 
-\item First, briefly note the importance of ethereum smart contracts, go to coindesk and etherscan pages to show the current ETH market cap, and then the massive number of transactions happening each day and associated ETH dollar value, which doesn't even cover token values where much of the action is.
+\item First, briefly note the importance of Ethereum smart contracts, go to coindesk and etherscan pages to show the current ETH market cap, and then the massive number of transactions happening each day and associated ETH dollar value, which doesn't even cover token values where much of the action is.
 
 \item Next show the Echidna tool page, and introduce it is as a widely used smart contract fuzzer.
 
