@@ -25,6 +25,8 @@
 \documentclass[sigconf]{acmart}
 
 \usepackage{code}
+\usepackage{microtype}
+\usepackage{balance}
 
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
@@ -37,18 +39,19 @@
 %% values in them; it is your responsibility as an author to replace
 %% the commands and values with those provided to you when you
 %% complete the rights form.
+%%% The following is specific to ISSTA '21-DEMO and the paper
+%%% 'echidna-parade: A Tool for Diverse Multicore Smart Contract Fuzzing'
+%%% by Alex Groce and Gustavo Grieco.
+%%%
 \setcopyright{acmcopyright}
-\copyrightyear{2021}
-\acmYear{2021}
-\acmDOI{10.1145/1122445.1122456}
-
-%% These commands are for a PROCEEDINGS abstract or paper.
-\acmConference[Woodstock '18]{Woodstock '18: ACM Symposium on Neural
-  Gaze Detection}{June 03--05, 2018}{Woodstock, NY}
-\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection,
-  June 03--05, 2018, Woodstock, NY}
 \acmPrice{15.00}
-\acmISBN{978-1-4503-XXXX-X/18/06}
+\acmDOI{10.1145/3460319.3469076}
+\acmYear{2021}
+\copyrightyear{2021}
+\acmSubmissionID{issta21demo-p8-p}
+\acmISBN{978-1-4503-8459-9/21/07}
+\acmConference[ISSTA '21]{Proceedings of the 30th ACM SIGSOFT International Symposium on Software Testing and Analysis}{July 11--17, 2021}{Virtual, Denmark}
+\acmBooktitle{Proceedings of the 30th ACM SIGSOFT International Symposium on Software Testing and Analysis (ISSTA '21), July 11--17, 2021, Virtual, Denmark}
 
 
 %%
@@ -168,7 +171,11 @@ auditors, and the Echidna tool is used by both contract developers
 and internally auditors at Trail of Bits.  Echidna is, to our
 understanding, the most popular and best supported fuzzer for Ethereum
 smart contracts, with almost an order of magnitude more GitHub stars
-than any other open-source EVM fuzzer.
+than any other open-source EVM fuzzer, and is used in the testing
+and/or Continuous
+Integration for several third-party contracts, including
+Uniswap (one of the most prominent decentralized cyptocurrency
+exchanges, generating fees of between \$2-3 million daily).
 
 Echidna is essentially a single-threaded tool that does not make
 effective use of multiple cores.  However, multiple Echidna
@@ -225,20 +232,16 @@ finds available.  Figure~\ref{fig:parade} shows output from a typical
     \begin{code}
 Starting echidna-parade with
 config=Config(files=['/Users/adg326/dss/crytic-export/flattening/DogTest.sol'],
-  name='2hour.8.parade.experiment.29', resume=None, contract='DogTest',
-  config=<\_io.TextIOWrapper name='plain.yaml' mode='r' encoding='UTF-8'>, bases=None, ncores=8,
-  corpus\_dir='/Users/adg326/dss/corpus.2hour.8.parade.experiment.29', timeout=7200,
-  gen\_time=300, initial\_time=300, seed=None, minseqLen=10,
-  maxseqLen=300, PdefaultLen=0.5, PdefaultDict=0.5,
+name='2hour.8.parade.experiment.29', resume=None, contract='DogTest',
+  config=<\_io.TextIOWrapper name='plain.yaml' mode='r'
+  encoding='UTF-8'>, bases=None, ncores=8, corpus\_dir='/Users/adg326/dss/corpus.2hour.8.parade.experiment.29', timeout=7200,
+  gen\_time=300, initial\_time=300, seed=None, minseqLen=10, maxseqLen=300, PdefaultLen=0.5, PdefaultDict=0.5,
   prob=0.5, always=[])
 
 Results will be written to: /Users/adg326/dss/2hour.8.parade.experiment.29
 Identified 29 public and external functions: Dog.rely(address), Dog.deny(address), Dog.file(bytes32,address), Dog.file(bytes32,uint256),
   Dog.file(bytes32,bytes32,uint256), Dog.file(bytes32,bytes32,address), Dog.chop(bytes32), Dog.bark(bytes32,address,address), Dog.digs(bytes32,uint256),
-   Dog.cage(), Vat.rely(address), Vat.deny(address), Vat.hope(address), Vat.nope(address), Vat.init(bytes32), Vat.file(bytes32,uint256), Vat.file(bytes32,bytes32,uint256),
-  Vat.cage(), Vat.slip(bytes32,address,int256), Vat.flux(bytes32,address,address,uint256), Vat.move(address,address,uint256),
-   Vat.frob(bytes32,address,address,address,int256,int256), Vat.fork(bytes32,address,address,int256,int256), Vat.grab(bytes32,address,address,address,int256,int256),
-  Vat.heal(uint256), Vat.suck(address,address,uint256), Vat.fold(bytes32,address,int256),VowMock.fess(uint256), ClipperMock.kick(uint256,uint256,address,address)
+...
 
 \vspace{0.1in}
   
@@ -248,20 +251,13 @@ RUNNING INITIAL CORPUS GENERATION
 \vspace{0.1in}
 
 SWARM GENERATION \#1: ELAPSED TIME 303.87 SECONDS / 7200
-- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/gen.1.0 blacklisting [ Dog.rely(address), Dog.deny(address), Dog.file(bytes32,address), Dog.file(bytes32,uint256),
-  Dog.file(bytes32,bytes32,address), Vat.rely(address), Vat.deny(address), Vat.nope(address), Vat.file(bytes32,uint256), Vat.slip(bytes32,address,int256),
-   Vat.move(address,address,uint256), Vat.frob(bytes32,address,address,address,int256,int256), Vat.heal(uint256) ] with seqLen 100 dictFreq 0.4 and mutConsts  [0, 3, 1000, 3]
-- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/gen.1.1 blacklisting [ Dog.deny(address), Dog.file(bytes32,address), Dog.file(bytes32,bytes32,uint256),
-  Dog.file(bytes32,bytes32,address), Dog.cage(), Vat.hope(address), Vat.file(bytes32,bytes32,uint256), Vat.flux(bytes32,address,address,uint256),
-   Vat.frob(bytes32,address,address,address,int256,int256), Vat.fork(bytes32,address,address,int256,int256), Vat.grab(bytes32,address,address,address,int256,int256),
-  Vat.suck(address,address,uint256), Vat.fold(bytes32,address,int256), VowMock.fess(uint256), ClipperMock.kick(uint256,uint256,address,address) ] with seqLen 100
-  dictFreq 0.88 and mutConsts  [2, 0, 2, 2000]
+- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/gen.1.0
+blacklisting [ Dog.rely(address), Dog.deny(address), Dog.file(bytes32,address), ...
+- LAUNCHING echidna-test in 2hour.8.parade.experiment.29/gen.1.1 blacklisting [ Dog.deny(address), Dog.file(bytes32,address), ...
 ...
 COLLECTING NEW COVERAGE: 2hour.8.parade.experiment.29/gen.1.0/corpus/coverage/-7507126444194881135.txt
 COLLECTING NEW COVERAGE: 2hour.8.parade.experiment.29/gen.1.0/corpus/coverage/-6907082692337979773.txt
 COLLECTING NEW COVERAGE: 2hour.8.parade.experiment.29/gen.1.2/corpus/coverage/-4795647765542071453.txt
-COLLECTING NEW COVERAGE: 2hour.8.parade.experiment.29/gen.1.4/corpus/coverage/3547233554766032648.txt
-COLLECTING NEW COVERAGE: 2hour.8.parade.experiment.29/gen.1.4/corpus/coverage/-7663735074641916226.txt
 ...
 SWARM GENERATION \#2: ELAPSED TIME 612.63 SECONDS / 7200
 - LAUNCHING echidna-test in 2hour.8.parade.experiment.29/gen.2.0
@@ -291,10 +287,9 @@ configurations for transaction sequence maximum length, which
 functions to test, and control of low-level test generation strategies
 that have a large impact on test effectiveness, and are either hard to
 tune or, for that matter, impossible to ``tune'' in that different
-values are essential to covering different aspects of the code or
-exposing different bugs.
+values are essential to covering different beahviors or bugs.
 
-The \emph{echidna-parade} tool stores all results from all the separate Echidna runs it generates in separate directories, so that users can inspect failed properties and violated assertion.  The tool collects all failures and provides a summary at the end of the run, including information on where exact failure traces can be found.  Users can also use these detailed results to determine if increases in coverage or bugs were correlated with inclusion or omission of certain functions.
+The \emph{echidna-parade} tool stores all results from all the separate Echidna runs it generates in separate directories, so that users can inspect failed properties and violated assertion.  The tool collects all failures and provides a summary at the end of the run, including information on where exact failure traces can be found.  Users can use these results to determine if increases in coverage or bugs were correlated with inclusion or omission of certain functions.
 
 \begin{table*}
 \centering
@@ -458,11 +453,30 @@ amount of time.  In fact, even using \emph{echidna-parade} there were coverage t
 effective and efficient testing of this contract, use of \emph{echidna-parade} is
 required.
 
+\balance
+
 \section{Related Work}
 
 Smart contract fuzzing has been a popular topic in recent literature.  To our knowledge, ContractFuzzer \cite{jiang:ase:2018} was the first such tool described in the literature.  Harvey \cite{harvey}, sFuzz \cite{sfuzz}, and other tools, in addition to Echidna \cite{echidnaissta}, the basis for our work, have subsequently appeared, and more are in development.
 
-The foundations for the approach to diversification taken by \emph{echidna-parade} are three primary lines of research.  The first of these is the idea of swarm testing \cite{ISSTA12}, which aims to improve testing by omitting some features uniformly throughout a test, in part because a feature (e.g. API call) may \emph{suppress} some behaviors \cite{groce2013help}.   Second, there is literature showing that a single test \emph{length} may not be ideal for all SUTs or behaviors of an SUT \cite{ASE08,ArcuriLen}.  Finally, there is the swarm verification approach to model checking \cite{swarmIEEE}, a precursor to swarm testing, which diversifies search strategy parameters themselves.  The only other tool we are aware of that adds swarm testing as a layer atop an existing fuzzer is the DeepState tool \cite{goodman2018deepstate}, which was a direct inspiration for \emph{echidna-parade}.
+The foundations for the approach to diversification taken by
+\emph{echidna-parade} are three primary lines of research.  The first
+of these is the idea of swarm testing \cite{ISSTA12}, which aims to
+improve testing by omitting some features uniformly throughout a test,
+in part because a feature (e.g. API call) may \emph{suppress} some
+behaviors \cite{groce2013help}.   Second, there is literature showing
+that a single test \emph{length} may not be ideal for all SUTs or
+behaviors of an SUT \cite{ASE08,ArcuriLen}.  Finally, there is the
+swarm verification approach to model checking \cite{swarmIEEE}, a
+precursor to swarm testing, which diversifies search strategy
+parameters themselves.  The only other tool we are aware of that adds
+swarm testing as a layer atop an existing fuzzer is the DeepState tool
+\cite{goodman2018deepstate}, which was a direct inspiration for
+\emph{echidna-parade}.  Also related is the idea of ensemble fuzzing,
+as in  Enfuzz \cite{chen2019enfuzz} or PAFL
+\cite{liang2018pafl}, though in our work we ``ensemble'' Echidna only
+with diverse instances of Echidna itself, which more closely
+resembles swarm verification with SPIN.
 
 \section{Conclusion}
 
@@ -471,33 +485,6 @@ Smart contract fuzzing is a challenging problem, a particularly high-stakes inst
 \bibliographystyle{plain}
 \bibliography{bibliography}
 
-\newpage
 
-\appendix
-\section{Proposed Demonstration}
-
-\begin{enumerate}
-
-\item First, briefly note the importance of Ethereum smart contracts, go to coindesk and etherscan pages to show the current ETH market cap, and then the massive number of transactions happening each day and associated ETH dollar value, which doesn't even cover token values where much of the action is.
-
-\item Next show the Echidna tool page, and introduce it is as a widely used smart contract fuzzer.
-
-\item Show a simple smart contract, such as the justlen.sol code, and then a complex one, such as part of the DSS code used in the evaluation.  Discuss the basics of Solidity, run echidna on a trivial example from the Echidna distribution, to show what a property failure and transaction sequence looks like.
-
-\item Discuss the challenge of fuzzing complex contracts, just like any other hard fuzzing problem.  Discuss that Echidna is single-core, but can communicate via corpuses, like afl but without mid-run reading of new corpus info at present.  Discuss how many hours of Echidna will not hit all interesting targets in code like DSS.  Briefly describe use in both contract development (show pages of real contracts with Echidna tests) and in audits (mention some real bugs found in public Trail of Bits audits using Echidna).
-  
-\item Now show how to install echidna-parade, github repo.
-
-\item Describe how the tool has the same interface as echidna.  Run on the simple example we used Echidna on.
-
-\item Look at directory contents generated by echidna-parade.
-  
-\item Show the experimental results from the paper, discuss the advantages testing something like DSS.
-
-\item Step through the three sources of diversity, pointing to the run on the simple example to explain swarm omission of API calls, and the differing test lengths and parameter choices.
-
-\item Run on the justlen.sol example, which is quick enough to show during the demonstration.  Note the experimental results for it.
-
-\end{enumerate}
 
 \end{document}
