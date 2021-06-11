@@ -101,7 +101,7 @@ Contract Fuzzing]{\emph{echidna-parade}: A Tool for Diverse Multicore\\Smart Con
 %% other information printed in the page headers. This command allows
 %% the author to define a more concise list
 %% of authors' names for this purpose.
-\renewcommand{\shortauthors}{Groce and Grieco}
+\renewcommand{\shortauthors}{Alex Groce and Gustavo Grieco}
 
 %%
 %% The abstract is a short summary of the work to be presented in the
@@ -292,6 +292,7 @@ values are essential to covering different beahviors or bugs.
 The \emph{echidna-parade} tool stores all results from all the separate Echidna runs it generates in separate directories, so that users can inspect failed properties and violated assertion.  The tool collects all failures and provides a summary at the end of the run, including information on where exact failure traces can be found.  Users can use these results to determine if increases in coverage or bugs were correlated with inclusion or omission of certain functions.
 
 \begin{table*}
+\caption{DSS Experiment Results}  
 \centering
 \begin{tabular}{l|r|r|r|r}
 & Echidna (5 hours) & Parade (1 core, 5 hours) & Parade (8 cores, 1
@@ -307,7 +308,6 @@ The \emph{echidna-parade} tool stores all results from all the separate Echidna 
   Median Non-Revert Covered & 133.0 & 133.0 & 133.0 & 148.0 \\
   Std. Dev Non-Revert Covered & 9.03 & 9.36 & 9.95 & 9.14 \\                         
 \end{tabular}
-\caption{DSS Experiment Results}
 \label{tab:exp}
 \end{table*}
 
